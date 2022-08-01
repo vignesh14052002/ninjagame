@@ -8,7 +8,8 @@ ctx=canvas.getContext("2d")
 img=new Image();
 img.src="./img/spritesheet1.png"
 img.onload=function(){
-draw()
+    ctx.drawImage(img,spritedata["slide"].xoff,0,spritedata["slide"].width,500,spritedata["slide"].width/(playerscale*2),0,spritedata["slide"].width/playerscale,500) 
+    draw()
 }
 
 }
