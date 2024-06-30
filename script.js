@@ -10,6 +10,7 @@ img.src="./img/spritesheet1.png"
 img.onload=function(){
     ctx.drawImage(img,spritedata["slide"].xoff,0,spritedata["slide"].width,500,spritedata["slide"].width/(playerscale*2),0,spritedata["slide"].width/playerscale,500) 
     draw()
+    weapons.push(new Weapon())
 }
 
 }
@@ -18,8 +19,10 @@ let x=5360+536*0;
 let width=282;
 
 let y=0;
+let absoluteFrame=0;
 let frame=0;
-let framedelay=10;
+let frameOnAction = frame
+let framedelay=5;
 
 let playerx=100
 let playery=200
@@ -29,6 +32,8 @@ let playerscale=3;
 let playerheight=500/playerscale;
 let flipx=1
 let flipy=1
+
+let weapons = []
 function draw(){
     let current=spritedata[current_state]
     ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -41,6 +46,7 @@ function draw(){
     ctx.drawImage(img,x,0,current.width,500,-current.width/(playerscale*2),0,current.width/playerscale,500/3)
     ctx.restore()
     frame++;
+    absoluteFrame++;
     if(myframe>current.frames-2){
         frame=0;
     }
@@ -61,21 +67,34 @@ function draw(){
         playery-=maxspeed*2;
     }
 
+    drawWeapons()
     window.requestAnimationFrame(draw)
 }
+
+function drawWeapons(){
+    // remove weapons that are off screen
+    weapons = weapons.filter(weapon => weapon.x < canvas.width && weapon.x > 0)
+    for (const weapon of weapons) {
+        weapon.move()
+        weapon.draw()
+    }
+}
+
 let grounded=false;
 let gliding=false;
 let speed=0;
 let maxspeed=10;
 let jumping=false
-
+let throwing = false
 //keyboard controls
 let key;
 var map = {}; 
 window.onkeydown = window.onkeyup = function(e){
+    
     e = e || event; // to deal with IE
     key=e.keyCode
     map[key] = e.type == 'keydown';
+    
     if(! (map[65]||map[39]||map[37]||map[38]||map[40])&&grounded ){
         current_state="idle"
     }
@@ -109,7 +128,39 @@ window.onkeydown = window.onkeyup = function(e){
         current_state="slide"
     }
     if(map[65]){//attack
-        current_state="attack"
+        current_state="throw"
+        throwing = true
+        weapons.push(new Weapon())
     }
     if(current_state=="idle")speed=0;
+    frameOnAction = absoluteFrame;
+}
+
+class Weapon{
+    constructor(){
+        this.x=playerx
+        this.y=playery
+        this.width=32
+        this.height=32
+        this.speed=maxspeed*flipx*2
+        this.rotation=(90 * Math.PI) / 180
+    }
+    draw(){
+        ctx.save()
+        ctx.translate(this.x,this.y)
+
+        ctx.scale(flipx,flipy)
+        const current=spritedata["weapon"]
+
+        // rotate the weapon
+        // this.rotation += (45 * Math.PI) / 180
+
+        ctx.rotate(this.rotation)
+
+        ctx.drawImage(img,current.xoff,0,current.width,500,-current.width/(playerscale*2) + 500/6,-25,current.width/playerscale,500/3)
+        ctx.restore()
+    }
+    move(){
+        this.x+=this.speed
+    }
 }
